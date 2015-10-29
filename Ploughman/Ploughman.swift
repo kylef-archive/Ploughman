@@ -35,7 +35,7 @@ enum StepError : ErrorType, CustomStringConvertible {
 public class Ploughman : CommandType {
   let scenario: [Scenario] = []
 
-  init() {}
+  public init() {}
 
   public typealias Handler = () throws -> ()
 
@@ -74,6 +74,10 @@ public class Ploughman : CommandType {
   public func run(parser: ArgumentParser) throws {
     var paths: [Path] = []
     while let arg = parser.shift() { paths.append(Path(arg)) }
+    try run(paths)
+  }
+
+  public func run(paths: [Path]) throws {
     let features = try Feature.parse(paths)
 
     if features.isEmpty {
@@ -81,6 +85,10 @@ public class Ploughman : CommandType {
       exit(1)
     }
 
+    try run(features)
+  }
+
+  public func run(features: [Feature]) throws {
     var scenarios = 0
     var failures = 0
     let reporter = Reporter()
