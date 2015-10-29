@@ -1,6 +1,6 @@
 {
   "name": "Ploughman",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "summary": "Ploughman.",
   "summary": "Swift runner for the Gherkin language",
   "homepage": "https://github.com/kylef",
@@ -9,7 +9,7 @@
   "social_media_url": "http://twitter.com/kylefuller",
   "source": {
     "git": "https://github.com/kylef/Ploughman.git",
-    "tag": "0.1.0"
+    "tag": "0.1.1"
   },
   "source_files": "Ploughman/*.swift",
   "platforms": {
