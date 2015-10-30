@@ -37,7 +37,7 @@ public class Ploughman : CommandType {
 
   public init() {}
 
-  public typealias Handler = () throws -> ()
+  public typealias Handler = () -> ()
 
   var befores: [Handler] = []
   var afters: [Handler] = []
@@ -98,12 +98,16 @@ public class Ploughman : CommandType {
           ++scenarios
 
           reporter.report(scenario.name) { reporter in
+            befores.forEach { $0() }
+
             for step in scenario.steps {
               if !runStep(step, reporter: reporter) {
                 ++failures
                 break
               }
             }
+
+            afters.forEach { $0() }
           }
         }
       }
