@@ -20,7 +20,7 @@ Feature: An array
          Then I should have 1 item in the array
 
     Scenario: Filtering an array
-        Given I have an array with the numbers 1 though 5
+        Given I have an array with the numbers 1 through 5
          When I filter the array for even numbers
          Then I should have 2 items in the array
 ```
@@ -34,7 +34,7 @@ given("^I have an empty array$") { match in
   array = []
 }
 
-given("^I have an array with the numbers (\\d) though (\\d)$") { match in
+given("^I have an array with the numbers (\\d) through (\\d)$") { match in
   let start = match.groups[1]
   let end = match.groups[2]
 
