@@ -110,7 +110,9 @@ public struct Feature {
       }
 
       func handleComponent(key: String, _ value: String) throws {
-        if var newState = ParseState(value: key.lowercaseString) {
+        if let newState = ParseState(value: key.lowercaseString) {
+          var newState = newState
+
           if newState == .And {
             newState = state
           }
