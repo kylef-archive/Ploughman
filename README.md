@@ -60,21 +60,6 @@ Then you can run your rules agains your feature files as follows:
 
 ![Screenshot of running Ploughman](Resources/screenshot.png)
 
-### Running the example yourself
-
-To run the example yourself, you will first need
-[Conche](https://github.com/kylef/Conche) to download the dependencies.
-
-```shell
-$ conche test
-$ ./example.swift example.feature
--> An array
-  -> Appending to an array
-    -> Filtering an array
-
-2 scenarios passed, 0 scenarios failed.
-```
-
 ## Usage
 
 To use Ploughman, you will need to build a command line tool that adds the
