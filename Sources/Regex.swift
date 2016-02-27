@@ -13,7 +13,7 @@ public struct RegexMatch {
   public var groups: [String] {
     return (0..<checkingResult.numberOfRanges).map {
       let range = checkingResult.rangeAtIndex($0)
-      return (value as NSString).substringWithRange(range)
+      return NSString(string: value).substringWithRange(range)
     }
   }
 }
