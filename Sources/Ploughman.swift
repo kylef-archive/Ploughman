@@ -13,14 +13,14 @@ public struct StepHandler {
   let expression: Regex
   let handler: Handler
 
-  init(expression: Regex, handler: Handler) {
+  init(expression: Regex, handler: @escaping Handler) {
     self.expression = expression
     self.handler = handler
   }
 }
 
 
-enum StepError : ErrorType, CustomStringConvertible {
+enum StepError : Error, CustomStringConvertible {
   case NoMatch(Step)
   case AmbiguousMatch(Step, [StepHandler])
 
@@ -29,7 +29,7 @@ enum StepError : ErrorType, CustomStringConvertible {
     case .NoMatch:
       return "No matches found"
     case .AmbiguousMatch(let handlers):
-      let matches = handlers.1.map { "       - `\($0.expression)`" }.joinWithSeparator("\n")
+      let matches = handlers.1.map { "       - `\($0.expression)`" }.joined(separator: "\n")
       return "Too many matches found:\n\(matches)"
     }
   }
@@ -49,47 +49,47 @@ public class Ploughman : CommandType {
   var whens: [StepHandler] = []
   var thens: [StepHandler] = []
 
-  public func before(closure: Handler) {
+  public func before(closure: @escaping Handler) {
     befores.append(closure)
   }
 
-  public func after(closure: Handler) {
+  public func after(closure: @escaping Handler) {
     afters.append(closure)
   }
 
-  public func given(expression: String, closure: StepHandler.Handler) {
+  public func given(_ expression: String, closure: @escaping StepHandler.Handler) {
     let regex = try! Regex(expression: expression)
     let handler = StepHandler(expression: regex, handler: closure)
     givens.append(handler)
   }
 
-  public func then(expression: String, closure: StepHandler.Handler) {
+  public func then(_ expression: String, closure: @escaping StepHandler.Handler) {
     let regex = try! Regex(expression: expression)
     let handler = StepHandler(expression: regex, handler: closure)
     thens.append(handler)
   }
 
-  public func when(expression: String, closure: StepHandler.Handler) {
+  public func when(_ expression: String, closure: @escaping StepHandler.Handler) {
     let regex = try! Regex(expression: expression)
     let handler = StepHandler(expression: regex, handler: closure)
     whens.append(handler)
   }
 
-  public func run(parser: ArgumentParser) throws {
+  public func run(_ parser: ArgumentParser) throws {
     var paths: [Path] = []
     while let arg = parser.shift() { paths.append(Path(arg)) }
-    try run(paths)
+    try run(paths: paths)
   }
 
   public func run(paths: [Path]) throws {
-    let features = try Feature.parse(paths)
+    let features = try Feature.parse(paths: paths)
 
     if features.isEmpty {
       print("No features found.")
       exit(1)
     }
 
-    try run(features)
+    try run(features: features)
   }
 
   public func run(features: [Feature]) throws {
@@ -99,14 +99,14 @@ public class Ploughman : CommandType {
     for feature in features {
         reporter.report(feature.name) { reporter in
         for scenario in feature.scenarios {
-          ++scenarios
+          scenarios += 1
 
           reporter.report(scenario.name) { reporter in
             befores.forEach { $0() }
 
             for step in scenario.steps {
-              if !runStep(step, reporter: reporter) {
-                ++failures
+              if !run(step: step, reporter: reporter) {
+                failures += 1
                 break
               }
             }
@@ -123,25 +123,25 @@ public class Ploughman : CommandType {
     }
   }
 
-  func runStep(step: Step, reporter: ScenarioReporter) -> Bool {
-    var failure: ErrorType? = nil
+  func run(step: Step, reporter: ScenarioReporter) -> Bool {
+    var failure: Error? = nil
 
     switch step {
-    case .Given(let given):
+    case .given(let given):
       do {
         let (handler, match) = try findGiven(step, name: given)
         try handler.handler(match)
       } catch {
         failure = error
       }
-    case .When(let when):
+    case .when(let when):
       do {
         let (handler, match) = try findWhen(step, name: when)
         try handler.handler(match)
       } catch {
         failure = error
       }
-    case .Then(let then):
+    case .then(let then):
       do {
         let (handler, match) = try findThen(step, name: then)
         try handler.handler(match)
@@ -150,11 +150,11 @@ public class Ploughman : CommandType {
       }
     }
 
-    reporter.report(step, failure: failure)
+    reporter.report(step: step, failure: failure)
     return failure == nil
   }
 
-  func findGiven(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
+  func findGiven(_ step: Step, name: String) throws -> (StepHandler, RegexMatch) {
     let matchedGivens = givens.filter { $0.expression.matches(name) != nil }
     if matchedGivens.count > 1 {
       throw StepError.AmbiguousMatch(step, matchedGivens)
@@ -166,7 +166,7 @@ public class Ploughman : CommandType {
     throw StepError.NoMatch(step)
   }
 
-  func findWhen(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
+  func findWhen(_ step: Step, name: String) throws -> (StepHandler, RegexMatch) {
     let matched = whens.filter { $0.expression.matches(name) != nil }
     if matched.count > 1 {
       throw StepError.AmbiguousMatch(step, matched)
@@ -178,7 +178,7 @@ public class Ploughman : CommandType {
     throw StepError.NoMatch(step)
   }
 
-  func findThen(step: Step, name: String) throws -> (StepHandler, RegexMatch) {
+  func findThen(_ step: Step, name: String) throws -> (StepHandler, RegexMatch) {
     let matched = thens.filter { $0.expression.matches(name) != nil }
     if matched.count > 1 {
       throw StepError.AmbiguousMatch(step, matched)
@@ -196,14 +196,14 @@ public let ploughman: Ploughman = {
   return Ploughman()
 }()
 
-public func given(expression: String, closure: StepHandler.Handler) {
+public func given(_ expression: String, closure: @escaping StepHandler.Handler) {
   ploughman.given(expression, closure: closure)
 }
 
-public func when(expression: String, closure: StepHandler.Handler) {
+public func when(_ expression: String, closure: @escaping StepHandler.Handler) {
   ploughman.when(expression, closure: closure)
 }
 
-public func then(expression: String, closure: StepHandler.Handler) {
+public func then(_ expression: String, closure: @escaping StepHandler.Handler) {
   ploughman.then(expression, closure: closure)
 }

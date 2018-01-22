@@ -3,9 +3,9 @@ import PathKit
 
 
 public enum Step {
-  case Given(String)
-  case When(String)
-  case Then(String)
+  case given(String)
+  case when(String)
+  case then(String)
 }
 
 
@@ -25,7 +25,7 @@ public struct Scenario {
 }
 
 
-struct ParseError : ErrorType, CustomStringConvertible {
+struct ParseError : Error, CustomStringConvertible {
   let description: String
 
   init(_ message: String) {
@@ -34,40 +34,40 @@ struct ParseError : ErrorType, CustomStringConvertible {
 }
 
 enum ParseState {
-  case Unknown
-  case Feature
-  case Scenario
-  case Given
-  case When
-  case Then
-  case And
+  case unknown
+  case feature
+  case scenario
+  case given
+  case when
+  case then
+  case and
 
   init?(value: String) {
     if value == "feature" {
-      self = .Feature
+      self = .feature
     } else if value == "scenario" {
-      self = .Scenario
+      self = .scenario
     } else if value == "given" {
-      self = .Given
+      self = .given
     } else if value == "when" {
-      self = .When
+      self = .when
     } else if value == "then" {
-      self = .Then
+      self = .then
     } else if value == "and" {
-      self = .And
+      self = .and
     } else {
       return nil
     }
   }
 
-  func toStep(value: String) -> Step? {
+  func toStep(_ value: String) -> Step? {
     switch self {
-    case .Given:
-      return .Given(value)
-    case .When:
-      return .When(value)
-    case .Then:
-      return .Then(value)
+    case .given:
+      return .given(value)
+    case .when:
+      return .when(value)
+    case .then:
+      return .then(value)
     default:
       return nil
     }
@@ -84,7 +84,7 @@ public struct Feature {
     for path in paths {
       let content: String = try path.read()
       var line = 0
-      var state = ParseState.Unknown
+      var state = ParseState.unknown
       var scenario: Scenario?
 
       var featureName: String?
@@ -109,22 +109,22 @@ public struct Feature {
         scenario = nil
       }
 
-      func handleComponent(key: String, _ value: String) throws {
-        if let newState = ParseState(value: key.lowercaseString) {
+      func handleComponent(_ key: String, _ value: String) throws {
+        if let newState = ParseState(value: key.lowercased()) {
           var newState = newState
 
-          if newState == .And {
+          if newState == .and {
             newState = state
           }
 
-          if newState == .Unknown {
-            throw ParseError("Invalid content `\(key.lowercaseString)` on line \(line) of \(path)")
+          if newState == .unknown {
+            throw ParseError("Invalid content `\(key.lowercased())` on line \(line) of \(path)")
           }
 
-          if newState == .Feature {
+          if newState == .feature {
             commitFeature()
             featureName = value
-          } else if newState == .Scenario {
+          } else if newState == .scenario {
             commitScenario()
             scenario = Scenario(name: value, steps: [], file: path, line: line)
           } else if let step = newState.toStep(value) {
@@ -137,23 +137,23 @@ public struct Feature {
         }
       }
 
-      for content in content.componentsSeparatedByString("\n") {
-        ++line
+      for content in content.components(separatedBy: "\n") {
+        line += 1
 
-        let contents = content.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+        let contents = content.trimmingCharacters(in: .whitespaces)
         if contents.isEmpty {
           continue
         }
-        let tokens = contents.split(":", maxSplit: 1)
+        let tokens = contents.split(":", maxSplits: 1)
         if tokens.count == 2 {
-          let key = String(tokens[0]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-          let value = String(tokens[1]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+          let key = String(tokens[0]).trimmingCharacters(in: .whitespaces)
+          let value = String(tokens[1]).trimmingCharacters(in: .whitespaces)
           try handleComponent(key, value)
         } else {
-          let tokens = contents.split(" ", maxSplit: 1)
+          let tokens = contents.split(" ", maxSplits: 1)
           if tokens.count == 2 {
-            let key = String(tokens[0]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-            let value = String(tokens[1]).stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+            let key = String(tokens[0]).trimmingCharacters(in: .whitespaces)
+            let value = String(tokens[1]).trimmingCharacters(in: .whitespaces)
             try handleComponent(key, value)
           } else {
             throw ParseError("Invalid content on line \(line) of \(path)")
@@ -174,8 +174,8 @@ public struct Feature {
 }
 
 extension String {
-  func split(character: Character, maxSplit: Int) -> [String] {
-    return characters.split(maxSplit) { $0 == character }
+  func split(_ character: Character, maxSplits: Int) -> [String] {
+    return characters.split(maxSplits: maxSplits) { $0 == character }
                      .map(String.init)
   }
 }

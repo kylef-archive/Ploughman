@@ -23,12 +23,12 @@ enum ANSI : String, CustomStringConvertible {
 }
 
 
-func echo(content: [CustomStringConvertible]) {
-  print(content.map { $0.description }.joinWithSeparator("") + ANSI.Reset.description)
+func echo(_ content: [CustomStringConvertible]) {
+  print(content.map { $0.description }.joined(separator: "") + ANSI.Reset.description)
 }
 
 class Reporter {
-  func report(name: String, @noescape closure: FeatureReporter -> ()) {
+  func report(_ name: String, closure: (FeatureReporter) -> ()) {
     let reporter = FeatureReporter(name: name)
     print("-> \(name)")
     closure(reporter)
@@ -42,7 +42,7 @@ class FeatureReporter {
     self.name = name
   }
 
-  func report(name: String, @noescape closure: ScenarioReporter -> ()) {
+  func report(_ name: String, closure: (ScenarioReporter) -> ()) {
     let reporter = ScenarioReporter(name: name)
     closure(reporter)
     reporter.print()
@@ -52,11 +52,11 @@ class FeatureReporter {
 extension Step : CustomStringConvertible {
   public var description: String {
     switch self {
-    case .Given(let given):
+    case .given(let given):
       return "Given \(given)"
-    case .When(let when):
+    case .when(let when):
       return "When \(when)"
-    case .Then(let then):
+    case .then(let then):
       return "Then \(then)"
     }
   }
@@ -64,9 +64,9 @@ extension Step : CustomStringConvertible {
 
 struct StepReport {
   let step: Step
-  let failure: ErrorType?
+  let failure: Error?
 
-  init(step: Step, failure: ErrorType? = nil) {
+  init(step: Step, failure: Error? = nil) {
     self.step = step
     self.failure = failure
   }
@@ -80,7 +80,7 @@ class ScenarioReporter {
     self.name = name
   }
 
-  func report(step: Step, failure: ErrorType? = nil) {
+  func report(step: Step, failure: Error? = nil) {
     reports.append(StepReport(step: step, failure: failure))
   }
 

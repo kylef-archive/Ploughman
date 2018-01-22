@@ -3,12 +3,13 @@ import PathKit
 import Ploughman
 
 
+func testFeature() {
 describe("Feature") {
-  let fixtures = Path(__FILE__) + ".." + ".." + "PloughmanSpec" + "fixtures"
+  let fixtures = Path(#file) + ".." + "fixtures"
   let exampleFeature = fixtures + "example.feature"
 
   $0.it("can be parsed from a file") {
-    let features = try Feature.parse([exampleFeature])
+    let features = try Feature.parse(paths: [exampleFeature])
 
     try expect(features.count) == 1
     try expect(features[0].name) == "Showing build output in simple format"
@@ -21,4 +22,5 @@ describe("Feature") {
     try expect(scenarios[1].line) == 8
     try expect(scenarios[1].steps.count) == 3
   }
+}
 }
